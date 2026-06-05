@@ -166,7 +166,7 @@ export const EditShadowsocksModal = React.memo(
                     </Button>
                     <Button
                       className={styles.button}
-                      disabled={!isValid || (isSelected && isStarted)}
+                      disabled={!isValid}
                       onClick={submitForm}
                       appearance="primary"
                     >

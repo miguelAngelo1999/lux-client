@@ -5,3 +5,5 @@ export * from "./Field";
 export * from "./FieldSelector/filedSelector";
 export * from "./FiledSwitch";
 export * from "./PasswordFiled";
+
+export { PasswordModeSelect } from "./Form/PasswordModeSelect";

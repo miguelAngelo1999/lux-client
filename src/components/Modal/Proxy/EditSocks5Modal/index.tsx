@@ -8,7 +8,7 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
-import { Field, Form, PasswordFiled } from "../../../Core";
+import { Field, Form, PasswordFiled, PasswordModeSelect } from "../../../Core";
 import styles from "./index.module.css";
 
 interface EditSocks5ModalProps {
@@ -17,7 +17,7 @@ interface EditSocks5ModalProps {
   isSelected?: boolean;
 }
 
-const INIT_DATA: Socks5 = {
+const INIT_DATA: any = {
   type: ProxyTypeEnum.Socks5,
   server: "",
   id: "",
@@ -25,6 +25,8 @@ const INIT_DATA: Socks5 = {
   port: 1080,
   password: "",
   username: "",
+  passwordMode: "persistent",
+  passwordTTLMinutes: 60,
 };
 
 const Socks5Schema = Yup.object().shape({
@@ -96,7 +98,8 @@ export function EditSocks5Modal(props: Readonly<EditSocks5ModalProps>) {
                 TRANSLATION_KEY.FORM_OPTIONAL,
               )})`}
             />
-                        <label style={{display:"flex",alignItems:"center",gap:"6px",marginTop:"8px",cursor:"pointer"}}>
+                        <PasswordModeSelect modeName="passwordMode" ttlName="passwordTTLMinutes" />
+            <label style={{display:"flex",alignItems:"center",gap:"6px",marginTop:"8px",cursor:"pointer"}}>
               <input type="checkbox" checked={lockOnSave} onChange={(e) => setLockOnSave(e.target.checked)} />
               <span style={{fontSize:"13px",color:"#e53e3e"}}>{t(TRANSLATION_KEY.LOCK_PASSWORD_ON_SAVE)}</span>
             </label>
@@ -106,7 +109,7 @@ export function EditSocks5Modal(props: Readonly<EditSocks5ModalProps>) {
               </Button>
               <Button
                 className={styles.button}
-                disabled={!isValid || (isSelected && isStarted)}
+                disabled={!isValid}
                 onClick={submitForm}
                 appearance="primary"
               >

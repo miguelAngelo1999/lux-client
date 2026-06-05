@@ -215,4 +215,10 @@ export const TRANSLATION_KEY = {
   LOCK_PASSWORD_CONFIRM: "proxy.lock_password_confirm",
   REVEAL_PASSWORD: "proxy.reveal_password",
   LOCK_PASSWORD_ON_SAVE: "proxy.lock_password_on_save",
+  PASSWORD_MODE: "proxy.password_mode",
+  PASSWORD_MODE_PERSISTENT: "proxy.password_mode_persistent",
+  PASSWORD_MODE_ONETIME: "proxy.password_mode_onetime",
+  PASSWORD_MODE_TIMED: "proxy.password_mode_timed",
+  PASSWORD_TTL: "proxy.password_ttl",
+  PASSWORD_TTL_MINUTES: "proxy.password_ttl_minutes",
 };
