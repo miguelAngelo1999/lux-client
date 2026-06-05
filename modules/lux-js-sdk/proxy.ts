@@ -117,3 +117,7 @@ export const getProxyDetail = async (id: string): Promise<any> => {
   const res = await axios.get(url);
   return res.data;
 };
+export const resetProxyPassword = async (id: string): Promise<void> => {
+  const url = `${urtConfig.proxies}/${id}/reset-password`;
+  await axios.post(url);
+};
