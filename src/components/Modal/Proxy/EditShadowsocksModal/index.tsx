@@ -7,6 +7,7 @@ import {
   type Shadowsocks,
   updateProxy,
 } from "lux-js-sdk";
+import { lockProxyPassword } from "lux-js-sdk";
 import React, { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
@@ -42,6 +43,7 @@ export const EditShadowsocksModal = React.memo(
   (props: EditShadowsocksModalProps) => {
     const { close, initialValue, isSelected = false, setPageStep } = props;
     const { t } = useTranslation();
+  const [lockOnSave, setLockOnSave] = useState(false);
     const dispatch = useDispatch();
     const methodsOptions = useRef(
       ENCRYPTION_METHODS.map((METHOD) => ({ content: METHOD, id: METHOD })),
@@ -135,6 +137,7 @@ export const EditShadowsocksModal = React.memo(
                   />
                   <PasswordFiled
                     name="password"
+              proxyId={initialValue?.id}
                     label={t(TRANSLATION_KEY.FORM_PASSWORD)}
                   />
                   <FiledSelector
@@ -153,7 +156,11 @@ export const EditShadowsocksModal = React.memo(
                       }
                     }}
                   />
-                  <div className={styles.buttonContainer}>
+                              <label style={{display:"flex",alignItems:"center",gap:"6px",marginTop:"8px",cursor:"pointer"}}>
+              <input type="checkbox" checked={lockOnSave} onChange={(e) => setLockOnSave(e.target.checked)} />
+              <span style={{fontSize:"13px",color:"#e53e3e"}}>{t(TRANSLATION_KEY.LOCK_PASSWORD_ON_SAVE)}</span>
+            </label>
+            <div className={styles.buttonContainer}>
                     <Button onClick={close} className={styles.button}>
                       {t(TRANSLATION_KEY.FORM_CANCEL)}
                     </Button>

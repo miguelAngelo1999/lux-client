@@ -106,3 +106,14 @@ export const updateSubscriptionProxies: UpdateSubscriptionProxies = async (
   const res = await axios.post(url, req);
   return res.data;
 };
+
+export const lockProxyPassword = async (id: string): Promise<void> => {
+  const url = `${urtConfig.proxies}/${id}/lock-password`;
+  await axios.post(url);
+};
+
+export const getProxyDetail = async (id: string): Promise<any> => {
+  const url = `${urtConfig.proxies}/${id}`;
+  const res = await axios.get(url);
+  return res.data;
+};

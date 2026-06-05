@@ -1,3 +1,5 @@
+import axios from "axios";
+import { urtConfig } from "lux-js-sdk/url";
 import { type MenuItemProps, notifier } from "@/components/Core";
 import { useDangerStyles, useTestDelay } from "@/hooks";
 import { proxiesSlice, type RootState, selectedSlice } from "@/reducers";
@@ -18,6 +20,7 @@ import {
   QrCodeFilled,
   SendRegular,
 } from "@fluentui/react-icons";
+import { LockClosedRegular, EyeRegular } from "@fluentui/react-icons";
 import {
   type BaseProxy,
   deleteProxies,
@@ -25,6 +28,7 @@ import {
   type Shadowsocks,
   updateSelectedProxyId,
 } from "lux-js-sdk";
+import { lockProxyPassword, getProxyDetail } from "lux-js-sdk";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
@@ -46,6 +50,9 @@ enum OperationTypeEnum {
   Test = "test",
   QrCode = "qrCode",
   TestUdp = "testUdp",
+  LockPassword = "lockPassword",
+  RevealPassword = "revealPassword",
+  UnlockPassword = "unlockPassword",
 }
 
 export function Operation(props: Readonly<OperationProps>): React.ReactNode {
@@ -78,6 +85,22 @@ export function Operation(props: Readonly<OperationProps>): React.ReactNode {
         id: OperationTypeEnum.TestUdp,
         content: t(TRANSLATION_KEY.COMMON_TEST_UDP),
         icon: <SendRegular />,
+      },
+      {
+        id: OperationTypeEnum.RevealPassword,
+        content: t(TRANSLATION_KEY.REVEAL_PASSWORD),
+        icon: <EyeRegular />,
+      },
+      {
+        id: OperationTypeEnum.LockPassword,
+        content: t(TRANSLATION_KEY.LOCK_PASSWORD),
+        icon: <LockClosedRegular />,
+        isDanger: true,
+      },
+      {
+        id: OperationTypeEnum.UnlockPassword,
+        content: "Reset Lock",
+        icon: <LockClosedRegular />,
       },
       {
         id: OperationTypeEnum.Delete,
@@ -153,6 +176,51 @@ export function Operation(props: Readonly<OperationProps>): React.ReactNode {
       }
       case OperationTypeEnum.QrCode: {
         onShowQrCode(proxy);
+        return;
+      }
+      case OperationTypeEnum.UnlockPassword: {
+        const unlockUser = window.prompt("Enter your Windows username to verify identity:");
+        if (!unlockUser) return;
+        const unlockPass = window.prompt("Enter your Windows password:");
+        if (!unlockPass) return;
+        const unlockVerify = await axios.post(`${urtConfig.proxies}/verify-admin`, { username: unlockUser, password: unlockPass });
+        if (!unlockVerify.data.verified) {
+          notifier.error("Authentication failed");
+          return;
+        }
+        const newPass = window.prompt("Enter the new proxy password:");
+        if (!newPass) return;
+        await axios.post(`${urtConfig.proxies}/${proxy.id}/unlock-password`, { password: newPass });
+        notifier.success("Password lock removed");
+        return;
+      }
+      case OperationTypeEnum.LockPassword: {
+        if (window.confirm(t(TRANSLATION_KEY.LOCK_PASSWORD_CONFIRM))) {
+          await lockProxyPassword(proxy.id);
+          notifier.success(t(TRANSLATION_KEY.LOCK_PASSWORD));
+        }
+        return;
+      }
+      case OperationTypeEnum.RevealPassword: {
+        try {
+          const username = window.prompt("Enter your Windows username to verify identity:");
+          if (!username) return;
+          const password = window.prompt("Enter your Windows password:");
+          if (!password) return;
+          const verifyRes = await axios.post(`${urtConfig.proxies}/verify-admin`, { username, password });
+          if (!verifyRes.data.verified) {
+            notifier.error("Authentication failed");
+            return;
+          }
+          const revealRes = await axios.get(`${urtConfig.proxies}/${proxy.id}/reveal`);
+          if (revealRes.data.password === "") {
+            notifier.error("No password or password is locked");
+          } else {
+            window.prompt(t(TRANSLATION_KEY.REVEAL_PASSWORD), revealRes.data.password);
+          }
+        } catch (e) {
+          notifier.error("Failed to verify or get password");
+        }
         return;
       }
       default: {

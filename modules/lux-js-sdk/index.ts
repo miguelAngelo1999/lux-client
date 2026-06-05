@@ -14,3 +14,5 @@ export * from "./setting";
 export * from "./traffic";
 export * from "./types";
 export * from "./version";
+
+export { lockProxyPassword, getProxyDetail } from "./proxy";
