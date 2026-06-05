@@ -7,7 +7,7 @@ import { lockProxyPassword } from "lux-js-sdk";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
-import { Field, Form, PasswordFiled } from "../../../Core";
+import { Field, Form, PasswordFiled, PasswordModeSelect } from "../../../Core";
 import styles from "./index.module.css";
 
 interface EditHttpModalProps {
@@ -16,7 +16,7 @@ interface EditHttpModalProps {
   isSelected?: boolean;
 }
 
-const INIT_DATA: Http = {
+const INIT_DATA: any = {
   type: ProxyTypeEnum.Http,
   server: "",
   id: "",
@@ -24,6 +24,8 @@ const INIT_DATA: Http = {
   port: 1080,
   password: "",
   username: "",
+  passwordMode: "persistent",
+  passwordTTLMinutes: 60,
 };
 
 export function EditHttpModal(props: Readonly<EditHttpModalProps>) {
@@ -89,7 +91,8 @@ export function EditHttpModal(props: Readonly<EditHttpModalProps>) {
                 TRANSLATION_KEY.FORM_OPTIONAL,
               )})`}
             />
-                        <label style={{display:"flex",alignItems:"center",gap:"6px",marginTop:"8px",cursor:"pointer"}}>
+                        <PasswordModeSelect modeName="passwordMode" ttlName="passwordTTLMinutes" />
+            <label style={{display:"flex",alignItems:"center",gap:"6px",marginTop:"8px",cursor:"pointer"}}>
               <input type="checkbox" checked={lockOnSave} onChange={(e) => setLockOnSave(e.target.checked)} />
               <span style={{fontSize:"13px",color:"#e53e3e"}}>{t(TRANSLATION_KEY.LOCK_PASSWORD_ON_SAVE)}</span>
             </label>
@@ -99,7 +102,7 @@ export function EditHttpModal(props: Readonly<EditHttpModalProps>) {
               </Button>
               <Button
                 className={styles.button}
-                disabled={!isValid || (isSelected && isStarted)}
+                disabled={!isValid}
                 onClick={submitForm}
                 appearance="primary"
               >
