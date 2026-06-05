@@ -240,4 +240,9 @@ export default {
   [TRANSLATION_KEY.REMARK]: "Remark",
   [TRANSLATION_KEY.EDIT_SUBSCRIPTION]: "Edit Subscription",
   [TRANSLATION_KEY.URL]: "Url",
+  "proxy.lock_password": "Lock Password",
+  "proxy.password_locked": "Password Locked",
+  "proxy.lock_password_confirm": "This will permanently prevent anyone from viewing this password. The proxy will continue to work, but the password can never be revealed again. This cannot be undone.",
+  "proxy.reveal_password": "Show Password",
+  "proxy.lock_password_on_save": "Lock password (cannot be revealed later)",
 };

@@ -230,4 +230,9 @@ export default {
   [TRANSLATION_KEY.REMARK]: "备注",
   [TRANSLATION_KEY.EDIT_SUBSCRIPTION]: "编辑订阅",
   [TRANSLATION_KEY.URL]: "链接",
+  "proxy.lock_password": "\u9501\u5b9a\u5bc6\u7801",
+  "proxy.password_locked": "\u5bc6\u7801\u5df2\u9501\u5b9a",
+  "proxy.lock_password_confirm": "\u6b64\u64cd\u4f5c\u5c06\u6c38\u4e45\u7981\u6b62\u4efb\u4f55\u4eba\u67e5\u770b\u6b64\u5bc6\u7801\u3002\u4ee3\u7406\u5c06\u7ee7\u7eed\u6b63\u5e38\u5de5\u4f5c\uff0c\u4f46\u5bc6\u7801\u5c06\u6c38\u8fdc\u65e0\u6cd5\u88ab\u663e\u793a\u3002\u6b64\u64cd\u4f5c\u4e0d\u53ef\u64a4\u9500\u3002",
+  "proxy.reveal_password": "\u663e\u793a\u5bc6\u7801",
+  "proxy.lock_password_on_save": "\u9501\u5b9a\u5bc6\u7801\uff08\u4e4b\u540e\u65e0\u6cd5\u67e5\u770b\uff09",
 };

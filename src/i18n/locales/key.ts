@@ -210,4 +210,9 @@ export const TRANSLATION_KEY = {
   REMARK: "remark",
   EDIT_SUBSCRIPTION: "edit_subscription",
   URL: "url",
+  LOCK_PASSWORD: "proxy.lock_password",
+  PASSWORD_LOCKED: "proxy.password_locked",
+  LOCK_PASSWORD_CONFIRM: "proxy.lock_password_confirm",
+  REVEAL_PASSWORD: "proxy.reveal_password",
+  LOCK_PASSWORD_ON_SAVE: "proxy.lock_password_on_save",
 };

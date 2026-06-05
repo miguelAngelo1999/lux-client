@@ -3,7 +3,8 @@ import { proxiesSlice, type RootState } from "@/reducers";
 import { MAX_PORT, MIN_PORT } from "@/utils/validator";
 import { Button } from "@fluentui/react-components";
 import { addProxy, ProxyTypeEnum, type Socks5, updateProxy } from "lux-js-sdk";
-import React from "react";
+import { lockProxyPassword } from "lux-js-sdk";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
@@ -36,6 +37,7 @@ const Socks5Schema = Yup.object().shape({
 
 export function EditSocks5Modal(props: Readonly<EditSocks5ModalProps>) {
   const { t } = useTranslation();
+  const [lockOnSave, setLockOnSave] = useState(false);
   const { close, initialValue, isSelected } = props;
   const dispatch = useDispatch();
   const isStarted = useSelector<RootState, boolean>(
@@ -53,6 +55,8 @@ export function EditSocks5Modal(props: Readonly<EditSocks5ModalProps>) {
         proxy: data,
       });
       dispatch(proxiesSlice.actions.addOne({ proxy: { ...data, id } }));
+    }    if (lockOnSave) {
+      try { await lockProxyPassword(data.id || ""); } catch(e) {}
     }
     close();
   };
@@ -87,10 +91,15 @@ export function EditSocks5Modal(props: Readonly<EditSocks5ModalProps>) {
             />
             <PasswordFiled<keyof Socks5>
               name="password"
+              proxyId={initialValue?.id}
               label={`${t(TRANSLATION_KEY.FORM_PASSWORD)}(${t(
                 TRANSLATION_KEY.FORM_OPTIONAL,
               )})`}
             />
+                        <label style={{display:"flex",alignItems:"center",gap:"6px",marginTop:"8px",cursor:"pointer"}}>
+              <input type="checkbox" checked={lockOnSave} onChange={(e) => setLockOnSave(e.target.checked)} />
+              <span style={{fontSize:"13px",color:"#e53e3e"}}>{t(TRANSLATION_KEY.LOCK_PASSWORD_ON_SAVE)}</span>
+            </label>
             <div className={styles.buttonContainer}>
               <Button onClick={close} className={styles.button}>
                 {t(TRANSLATION_KEY.FORM_CANCEL)}
