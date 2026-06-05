@@ -1,5 +1,3 @@
-import axios from "axios";
-import { urtConfig } from "lux-js-sdk/url";
 import { type MenuItemProps, notifier } from "@/components/Core";
 import { useDangerStyles, useTestDelay } from "@/hooks";
 import { proxiesSlice, type RootState, selectedSlice } from "@/reducers";
@@ -28,14 +26,16 @@ import {
   type Shadowsocks,
   updateSelectedProxyId,
 } from "lux-js-sdk";
-import { lockProxyPassword, getProxyDetail } from "lux-js-sdk";
-import React, { useMemo } from "react";
+import { lockProxyPassword, getProxyDetail, resetProxyPassword } from "lux-js-sdk";
+import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 
 import { TRANSLATION_KEY } from "@/i18n/locales/key";
 import { useTestUdp } from "@/utils/testUdp";
 import { encode } from "@/utils/url";
+import { AdminAuthDialog } from "./AdminAuthDialog";
+import { RevealPasswordDialog } from "./RevealPasswordDialog";
 
 interface OperationProps {
   proxy: BaseProxy;
@@ -52,7 +52,7 @@ enum OperationTypeEnum {
   TestUdp = "testUdp",
   LockPassword = "lockPassword",
   RevealPassword = "revealPassword",
-  UnlockPassword = "unlockPassword",
+  ResetPassword = "resetPassword",
 }
 
 export function Operation(props: Readonly<OperationProps>): React.ReactNode {
@@ -61,7 +61,6 @@ export function Operation(props: Readonly<OperationProps>): React.ReactNode {
   const { id: proxyId } = proxy;
 
   const inlineStyles = useDangerStyles();
-
   const dispatch = useDispatch();
   const testDelay = useTestDelay();
   const testUdp = useTestUdp();
@@ -74,6 +73,13 @@ export function Operation(props: Readonly<OperationProps>): React.ReactNode {
   const isSelected = useSelector<RootState, boolean>(
     (state) => state.selected.proxy === proxyId,
   );
+
+  // Dialog state
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const [authAction, setAuthAction] = useState<"reveal" | "reset" | null>(null);
+  const [revealedPassword, setRevealedPassword] = useState("");
+  const [revealDialogOpen, setRevealDialogOpen] = useState(false);
+
   const menuItems: MenuItemProps[] = useMemo(() => {
     let items: MenuItemProps[] = [
       {
@@ -98,8 +104,8 @@ export function Operation(props: Readonly<OperationProps>): React.ReactNode {
         isDanger: true,
       },
       {
-        id: OperationTypeEnum.UnlockPassword,
-        content: "Reset Lock",
+        id: OperationTypeEnum.ResetPassword,
+        content: "Reset Password",
         icon: <LockClosedRegular />,
       },
       {
@@ -145,6 +151,32 @@ export function Operation(props: Readonly<OperationProps>): React.ReactNode {
     }
     return items;
   }, [isSelected, isStarted, isSwitchLoading, proxy.type, t]);
+
+  const handleAuthConfirm = async () => {
+    setAuthDialogOpen(false);
+    if (authAction === "reveal") {
+      try {
+        const detail = await getProxyDetail(proxy.id);
+        if (detail.password && detail.password !== "") {
+          setRevealedPassword(detail.password);
+          setRevealDialogOpen(true);
+        } else {
+          notifier.error("No password configured or password is locked");
+        }
+      } catch (e) {
+        notifier.error("Failed to retrieve password");
+      }
+    } else if (authAction === "reset") {
+      try {
+        await resetProxyPassword(proxy.id);
+        notifier.success("Password reset. Please edit the proxy to enter a new password.");
+        onEdit(proxy);
+      } catch (e) {
+        notifier.error("Failed to reset password");
+      }
+    }
+  };
+
   const onSelect = async (id: string) => {
     switch (id) {
       case OperationTypeEnum.Edit:
@@ -178,22 +210,6 @@ export function Operation(props: Readonly<OperationProps>): React.ReactNode {
         onShowQrCode(proxy);
         return;
       }
-      case OperationTypeEnum.UnlockPassword: {
-        const unlockUser = window.prompt("Enter your Windows username to verify identity:");
-        if (!unlockUser) return;
-        const unlockPass = window.prompt("Enter your Windows password:");
-        if (!unlockPass) return;
-        const unlockVerify = await axios.post(`${urtConfig.proxies}/verify-admin`, { username: unlockUser, password: unlockPass });
-        if (!unlockVerify.data.verified) {
-          notifier.error("Authentication failed");
-          return;
-        }
-        const newPass = window.prompt("Enter the new proxy password:");
-        if (!newPass) return;
-        await axios.post(`${urtConfig.proxies}/${proxy.id}/unlock-password`, { password: newPass });
-        notifier.success("Password lock removed");
-        return;
-      }
       case OperationTypeEnum.LockPassword: {
         if (window.confirm(t(TRANSLATION_KEY.LOCK_PASSWORD_CONFIRM))) {
           await lockProxyPassword(proxy.id);
@@ -202,25 +218,13 @@ export function Operation(props: Readonly<OperationProps>): React.ReactNode {
         return;
       }
       case OperationTypeEnum.RevealPassword: {
-        try {
-          const username = window.prompt("Enter your Windows username to verify identity:");
-          if (!username) return;
-          const password = window.prompt("Enter your Windows password:");
-          if (!password) return;
-          const verifyRes = await axios.post(`${urtConfig.proxies}/verify-admin`, { username, password });
-          if (!verifyRes.data.verified) {
-            notifier.error("Authentication failed");
-            return;
-          }
-          const revealRes = await axios.get(`${urtConfig.proxies}/${proxy.id}/reveal`);
-          if (revealRes.data.password === "") {
-            notifier.error("No password or password is locked");
-          } else {
-            window.prompt(t(TRANSLATION_KEY.REVEAL_PASSWORD), revealRes.data.password);
-          }
-        } catch (e) {
-          notifier.error("Failed to verify or get password");
-        }
+        setAuthAction("reveal");
+        setAuthDialogOpen(true);
+        return;
+      }
+      case OperationTypeEnum.ResetPassword: {
+        setAuthAction("reset");
+        setAuthDialogOpen(true);
         return;
       }
       default: {
@@ -230,37 +234,51 @@ export function Operation(props: Readonly<OperationProps>): React.ReactNode {
   };
 
   return (
-    <Menu>
-      <MenuTrigger disableButtonEnhancement>
-        <Button
-          as={"a"}
-          appearance="transparent"
-          icon={<MoreHorizontalFilled />}
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-          }}
-        />
-      </MenuTrigger>
-      <MenuPopover>
-        <MenuList>
-          {menuItems.map((item) => (
-            <MenuItem
-              className={item.isDanger ? inlineStyles.danger : ""}
-              disabled={item.disabled}
-              key={item.id}
-              icon={item.icon}
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                onSelect(item.id as string);
-              }}
-            >
-              {item.content}
-            </MenuItem>
-          ))}
-        </MenuList>
-      </MenuPopover>
-    </Menu>
+    <>
+      <Menu>
+        <MenuTrigger disableButtonEnhancement>
+          <Button
+            as={"a"}
+            appearance="transparent"
+            icon={<MoreHorizontalFilled />}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+            }}
+          />
+        </MenuTrigger>
+        <MenuPopover>
+          <MenuList>
+            {menuItems.map((item) => (
+              <MenuItem
+                className={item.isDanger ? inlineStyles.danger : ""}
+                disabled={item.disabled}
+                key={item.id}
+                icon={item.icon}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  onSelect(item.id as string);
+                }}
+              >
+                {item.content}
+              </MenuItem>
+            ))}
+          </MenuList>
+        </MenuPopover>
+      </Menu>
+      <AdminAuthDialog
+        open={authDialogOpen}
+        onDismiss={() => setAuthDialogOpen(false)}
+        onVerified={handleAuthConfirm}
+        title="Verify Identity"
+        description="Enter your system password to reveal the proxy password."
+      />
+      <RevealPasswordDialog
+        open={revealDialogOpen}
+        onDismiss={() => { setRevealDialogOpen(false); setRevealedPassword(""); }}
+        password={revealedPassword}
+      />
+    </>
   );
 }
