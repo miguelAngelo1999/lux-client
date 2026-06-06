@@ -8,7 +8,8 @@ import {
   type RuleDetailItem,
   type SettingRes,
 } from "lux-js-sdk";
-import React from "react";
+import { getProxyNames } from "lux-js-sdk";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import styles from "./index.module.css";
@@ -26,51 +27,36 @@ const INITIAL_VALUES: RuleDetailItem = {
 };
 
 const RULE_TYPE_OPTIONS = [
-  {
-    id: RULE_TYPE.IpCidr,
-    content: RULE_TYPE.IpCidr,
-  },
-  {
-    id: RULE_TYPE.Domain,
-    content: RULE_TYPE.Domain,
-  },
-  {
-    id: RULE_TYPE.DomainKeyword,
-    content: RULE_TYPE.DomainKeyword,
-  },
-  {
-    id: RULE_TYPE.DomainRegex,
-    content: RULE_TYPE.DomainRegex,
-  },
-  {
-    id: RULE_TYPE.DomainSuffix,
-    content: RULE_TYPE.DomainSuffix,
-  },
-  {
-    id: RULE_TYPE.DnsMap,
-    content: RULE_TYPE.DnsMap,
-  },
+  { id: RULE_TYPE.IpCidr, content: RULE_TYPE.IpCidr },
+  { id: RULE_TYPE.Domain, content: RULE_TYPE.Domain },
+  { id: RULE_TYPE.DomainKeyword, content: RULE_TYPE.DomainKeyword },
+  { id: RULE_TYPE.DomainRegex, content: RULE_TYPE.DomainRegex },
+  { id: RULE_TYPE.DomainSuffix, content: RULE_TYPE.DomainSuffix },
+  { id: RULE_TYPE.DnsMap, content: RULE_TYPE.DnsMap },
 ];
 
-const POLICY_OPTIONS = [
-  {
-    id: RULE_POLICY.Proxy,
-    content: RULE_POLICY.Proxy,
-  },
-  {
-    id: RULE_POLICY.Direct,
-    content: RULE_POLICY.Direct,
-  },
-  {
-    id: RULE_POLICY.Reject,
-    content: RULE_POLICY.Reject,
-  },
+const BASE_POLICY_OPTIONS = [
+  { id: RULE_POLICY.Proxy, content: `${RULE_POLICY.Proxy} (default selected)` },
+  { id: RULE_POLICY.Direct, content: RULE_POLICY.Direct },
+  { id: RULE_POLICY.Reject, content: RULE_POLICY.Reject },
 ];
 
 export function AddRuleModal(props: Readonly<AddRuleModalProps>) {
   const { t } = useTranslation();
   const { close, onSave, initValue } = props;
   const isEdit = !!initValue;
+  const [policyOptions, setPolicyOptions] = useState(BASE_POLICY_OPTIONS);
+
+  useEffect(() => {
+    getProxyNames().then((names) => {
+      const namedOptions = names.map((p) => ({
+        id: p.name,
+        content: `↗ ${p.name}`,
+      }));
+      setPolicyOptions([...BASE_POLICY_OPTIONS, ...namedOptions]);
+    }).catch(() => {});
+  }, []);
+
   const onSubmit = async (data: RuleDetailItem) => {
     await onSave(data);
     close();
@@ -114,7 +100,7 @@ export function AddRuleModal(props: Readonly<AddRuleModalProps>) {
               <FiledSelector
                 name="policy"
                 label={t(TRANSLATION_KEY.POLICY)}
-                items={POLICY_OPTIONS}
+                items={policyOptions}
                 className={styles.item}
               />
               <Field name="payload" label={t(TRANSLATION_KEY.PAYLOAD)} />
