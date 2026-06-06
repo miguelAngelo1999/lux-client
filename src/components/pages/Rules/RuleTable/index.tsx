@@ -98,13 +98,17 @@ export default function RuleTable(props: Readonly<RuleTableProps>) {
 
   const handleMoveRule = useCallback(
     async (rule: RuleDetailItem, direction: "up" | "down") => {
-      const idx = rules.indexOf(rule);
+      // Use raw or formatted string to find index (indexOf fails with object refs)
+      const ruleStr = (rule as any).raw || formatRule(rule);
+      const idx = rules.findIndex(r => ((r as any).raw || formatRule(r)) === ruleStr);
+      if (idx === -1) return;
       if (direction === "up" && idx === 0) return;
       if (direction === "down" && idx === rules.length - 1) return;
       const newRules = [...rules];
       const swapIdx = direction === "up" ? idx - 1 : idx + 1;
       [newRules[idx], newRules[swapIdx]] = [newRules[swapIdx], newRules[idx]];
-      await reorderCustomizedRules(newRules.map(formatRule));
+      // Preserve disabled state by using raw field
+      await reorderCustomizedRules(newRules.map(r => (r as any).raw || formatRule(r)));
       await refresh();
     },
     [rules, refresh],

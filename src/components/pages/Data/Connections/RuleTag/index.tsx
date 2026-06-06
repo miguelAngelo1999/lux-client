@@ -8,20 +8,21 @@ import { useTranslation } from "react-i18next";
 function RuleTag({ value }: Readonly<{ value: RuleDetailItem }>) {
   const { t } = useTranslation();
 
-  let content = (
-    <Tag type={TagTypeEnum.Warning} value={t(TRANSLATION_KEY.DIRECT)} />
-  );
-
   if (value.policy === RULE_POLICY.Proxy) {
-    content = <Tag type={TagTypeEnum.Info} value={t(TRANSLATION_KEY.PROXY)} />;
+    return <TableCellLayout truncate><Tag type={TagTypeEnum.Info} value={t(TRANSLATION_KEY.PROXY)} /></TableCellLayout>;
   }
   if (value.policy === RULE_POLICY.Reject) {
-    content = (
-      <Tag type={TagTypeEnum.Error} value={t(TRANSLATION_KEY.REJECT)} />
-    );
+    return <TableCellLayout truncate><Tag type={TagTypeEnum.Error} value={t(TRANSLATION_KEY.REJECT)} /></TableCellLayout>;
   }
-
-  return <TableCellLayout truncate>{content}</TableCellLayout>;
+  if (value.policy === RULE_POLICY.Direct) {
+    return <TableCellLayout truncate><Tag type={TagTypeEnum.Warning} value={t(TRANSLATION_KEY.DIRECT)} /></TableCellLayout>;
+  }
+  // Named proxy policy (e.g. LP, Proxy2) — show in green with arrow
+  return (
+    <TableCellLayout truncate>
+      <Tag type={TagTypeEnum.Success} value={'↗ ' + value.policy} />
+    </TableCellLayout>
+  );
 }
 
 export default RuleTag;
