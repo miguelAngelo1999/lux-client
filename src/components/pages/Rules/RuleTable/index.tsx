@@ -1,20 +1,20 @@
 import { Table } from "@/components/Core";
 import { AddRuleModal } from "@/components/Modal/AddRuleModal";
 import RuleCell from "@/components/pages/Data/Connections/RuleTag";
-import { toggleCustomizedRule, useDangerStyles } from "@/hooks";
-import { toggleCustomizedRule, TRANSLATION_KEY } from "@/i18n/locales/key";
-import { toggleCustomizedRule, CUSTOMIZED_RULE_ID } from "@/utils/constants";
-import { toggleCustomizedRule,
+import { useDangerStyles } from "@/hooks";
+import { TRANSLATION_KEY } from "@/i18n/locales/key";
+import { CUSTOMIZED_RULE_ID } from "@/utils/constants";
+import {
   Button,
   createTableColumn,
   SearchBox,
   TableCellLayout,
   Tooltip,
 } from "@fluentui/react-components";
-import { toggleCustomizedRule, AddFilled, ArrowUpRegular, ArrowDownRegular, DeleteRegular, EditRegular } from "@fluentui/react-icons";
-import { toggleCustomizedRule, type TableColumnDefinition } from "@fluentui/react-table";
-import { toggleCustomizedRule, t } from "i18next";
-import { toggleCustomizedRule,
+import { AddFilled, ArrowUpRegular, ArrowDownRegular, DeleteRegular, EditRegular, EyeOffRegular, EyeRegular } from "@fluentui/react-icons";
+import { type TableColumnDefinition } from "@fluentui/react-table";
+import { t } from "i18next";
+import {
   addCustomizedRules,
   deleteCustomizedRules,
   editCustomizedRule,
