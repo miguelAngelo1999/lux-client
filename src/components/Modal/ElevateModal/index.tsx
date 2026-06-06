@@ -1,64 +1,28 @@
 import { TRANSLATION_KEY } from "@/i18n/locales/key";
 import { type RootState } from "@/reducers";
-import { getExecutablePath, getRuntimeOS } from "lux-js-sdk";
-import React, { type ReactNode, useEffect, useState } from "react";
+import { notifier } from "@/components/Core";
+import React, { type ReactNode, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
-import { ConfirmModal } from "../../Core";
-import CodeBlock from "../../Core/CodeBlock";
-
-const CORE_PATH_VAR = "LUX_CORE_PATH";
 
 export function ElevateModal(): ReactNode {
   const { t } = useTranslation();
-
-  const [os, setOs] = useState("");
-  useEffect(() => {
-    getRuntimeOS().then((res) => {
-      setOs(res.os);
-    });
-  }, []);
+  const shown = useRef(false);
 
   const isAdmin = useSelector<RootState, boolean>(
     (state) => state.general.isAdmin,
   );
-  const [corePath, setCorePath] = useState("");
 
-  const [isOpen, setIsOpen] = useState(true);
+  const mode = useSelector<RootState, string>(
+    (state) => state.setting?.mode || "system",
+  );
 
   useEffect(() => {
-    getExecutablePath().then((path) => {
-      setCorePath(path);
-    });
-  }, []);
+    if (!isAdmin && !shown.current && (mode === "tun" || mode === "mixed")) {
+      shown.current = true;
+      notifier.warn(t(TRANSLATION_KEY.ELEVATE_CORE));
+    }
+  }, [isAdmin, mode, t]);
 
-  const isDarwin = os === "darwin";
-
-  return !isAdmin && isOpen ? (
-    <ConfirmModal
-      title={t(TRANSLATION_KEY.ELEVATE_CORE)}
-      onCancel={() => {
-        setIsOpen(false);
-      }}
-      hideCancelText
-      content={
-        <div>
-          <div>
-            {t(
-              isDarwin
-                ? TRANSLATION_KEY.ELEVATE_TIP_MACOS
-                : TRANSLATION_KEY.ELEVATE_TIP_WINDOWS,
-            )}
-          </div>
-          {isDarwin && (
-            <CodeBlock
-              text={`export ${CORE_PATH_VAR}=${corePath}\nsudo chown root:wheel $${CORE_PATH_VAR}\nsudo chmod 770 $${CORE_PATH_VAR}\nsudo chmod +sx $${CORE_PATH_VAR}`}
-            />
-          )}
-        </div>
-      }
-    />
-  ) : (
-    ""
-  );
+  return null;
 }
