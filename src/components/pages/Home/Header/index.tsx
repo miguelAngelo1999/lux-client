@@ -68,8 +68,8 @@ export function Header(): React.ReactNode {
   });
   const isDnsSettingValid = useSelector<RootState, boolean>((state) => {
     return (
-      state.setting.dns.server.remote.length <= 2 &&
-      state.setting.dns.server.local.length <= 2
+      state.setting.dns?.server?.remote?.length <= 2 &&
+      state.setting.dns?.server?.local?.length <= 2
     );
   });
   const dispatch = useDispatch();

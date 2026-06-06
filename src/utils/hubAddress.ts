@@ -30,7 +30,7 @@ const HUB_ADDRESS_KEY = "hubAddress";
 export function getHubAddress(): HubAddress {
   const isDev = !import.meta.env.PROD;
   const hubAddress =
-    (isDev ? import.meta.env.HUB_ADDRESS : getCoreAddress()) ?? "";
+    getCoreAddress() ?? "";
 
   try {
     return parseAddress(hubAddress);
