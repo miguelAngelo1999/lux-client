@@ -17,3 +17,5 @@ export * from "./version";
 
 
 export { getProxyNames } from "./proxy";
+
+export { reorderCustomizedRules } from "./rule";

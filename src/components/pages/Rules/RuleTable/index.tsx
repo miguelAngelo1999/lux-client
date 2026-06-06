@@ -11,7 +11,7 @@ import {
   TableCellLayout,
   Tooltip,
 } from "@fluentui/react-components";
-import { AddFilled, DeleteRegular, EditRegular } from "@fluentui/react-icons";
+import { AddFilled, ArrowUpRegular, ArrowDownRegular, DeleteRegular, EditRegular } from "@fluentui/react-icons";
 import { type TableColumnDefinition } from "@fluentui/react-table";
 import { t } from "i18next";
 import {
@@ -19,6 +19,7 @@ import {
   deleteCustomizedRules,
   editCustomizedRule,
   getRuleDetail,
+  reorderCustomizedRules,
   type RuleDetailItem,
 } from "lux-js-sdk";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -94,6 +95,20 @@ export default function RuleTable(props: Readonly<RuleTableProps>) {
     [editingRule, refresh],
   );
 
+  const handleMoveRule = useCallback(
+    async (rule: RuleDetailItem, direction: "up" | "down") => {
+      const idx = rules.indexOf(rule);
+      if (direction === "up" && idx === 0) return;
+      if (direction === "down" && idx === rules.length - 1) return;
+      const newRules = [...rules];
+      const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+      [newRules[idx], newRules[swapIdx]] = [newRules[swapIdx], newRules[idx]];
+      await reorderCustomizedRules(newRules.map(formatRule));
+      await refresh();
+    },
+    [rules, refresh],
+  );
+
   const data = useMemo(() => {
     return rules.filter((conn) => {
       if (searchedValue) {
@@ -165,12 +180,24 @@ export default function RuleTable(props: Readonly<RuleTableProps>) {
                 <TableCellLayout truncate>
                   <div className={styles.actionBtns}>
                     <Button
-                      icon={<DeleteRegular className={inlineStyles.danger} />}
-                      onClick={() => handleDelete(item)}
+                      icon={<ArrowUpRegular />}
+                      onClick={() => handleMoveRule(item, "up")}
+                      size="small"
+                      title="Move up"
+                    />
+                    <Button
+                      icon={<ArrowDownRegular />}
+                      onClick={() => handleMoveRule(item, "down")}
+                      size="small"
+                      title="Move down"
                     />
                     <Button
                       icon={<EditRegular />}
                       onClick={() => handleEdit(item)}
+                    />
+                    <Button
+                      icon={<DeleteRegular className={inlineStyles.danger} />}
+                      onClick={() => handleDelete(item)}
                     />
                   </div>
                 </TableCellLayout>
