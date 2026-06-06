@@ -1,25 +1,26 @@
 import { Table } from "@/components/Core";
 import { AddRuleModal } from "@/components/Modal/AddRuleModal";
 import RuleCell from "@/components/pages/Data/Connections/RuleTag";
-import { useDangerStyles } from "@/hooks";
-import { TRANSLATION_KEY } from "@/i18n/locales/key";
-import { CUSTOMIZED_RULE_ID } from "@/utils/constants";
-import {
+import { toggleCustomizedRule, useDangerStyles } from "@/hooks";
+import { toggleCustomizedRule, TRANSLATION_KEY } from "@/i18n/locales/key";
+import { toggleCustomizedRule, CUSTOMIZED_RULE_ID } from "@/utils/constants";
+import { toggleCustomizedRule,
   Button,
   createTableColumn,
   SearchBox,
   TableCellLayout,
   Tooltip,
 } from "@fluentui/react-components";
-import { AddFilled, ArrowUpRegular, ArrowDownRegular, DeleteRegular, EditRegular } from "@fluentui/react-icons";
-import { type TableColumnDefinition } from "@fluentui/react-table";
-import { t } from "i18next";
-import {
+import { toggleCustomizedRule, AddFilled, ArrowUpRegular, ArrowDownRegular, DeleteRegular, EditRegular } from "@fluentui/react-icons";
+import { toggleCustomizedRule, type TableColumnDefinition } from "@fluentui/react-table";
+import { toggleCustomizedRule, t } from "i18next";
+import { toggleCustomizedRule,
   addCustomizedRules,
   deleteCustomizedRules,
   editCustomizedRule,
   getRuleDetail,
   reorderCustomizedRules,
+  toggleCustomizedRule,
   type RuleDetailItem,
 } from "lux-js-sdk";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -131,6 +132,16 @@ export default function RuleTable(props: Readonly<RuleTableProps>) {
     [handleEditCustomizedRule],
   );
 
+  const handleToggleRule = useCallback(
+    async (item: RuleDetailItem) => {
+      // Send the raw rule string (with or without # prefix)
+      const rawRule = (item as any).raw || `${item.ruleType},${item.payload},${item.policy}`;
+      await toggleCustomizedRule(rawRule);
+      await refresh();
+    },
+    [refresh],
+  );
+
   const handleDelete = useCallback(
     (item: RuleDetailItem) => {
       handleDeleteCustomizedRule(item).catch((e) => {
@@ -157,7 +168,13 @@ export default function RuleTable(props: Readonly<RuleTableProps>) {
           return t(TRANSLATION_KEY.PAYLOAD);
         },
         renderCell: (item) => {
-          return <TableCellLayout truncate>{item.payload}</TableCellLayout>;
+          return (
+            <TableCellLayout truncate>
+              <span style={(item as any).disabled ? { textDecoration: "line-through", opacity: 0.5 } : undefined}>
+                {item.payload}
+              </span>
+            </TableCellLayout>
+          );
         },
       }),
       createTableColumn<RuleDetailItem>({
@@ -192,6 +209,13 @@ export default function RuleTable(props: Readonly<RuleTableProps>) {
                       title="Move down"
                     />
                     <Button
+                      icon={(item as any).disabled ? <EyeRegular /> : <EyeOffRegular />}
+                      onClick={() => handleToggleRule(item)}
+                      size="small"
+                      title={(item as any).disabled ? "Enable rule" : "Disable rule"}
+                      style={{ opacity: 0.7 }}
+                    />
+                    <Button
                       icon={<EditRegular />}
                       onClick={() => handleEdit(item)}
                     />
@@ -206,7 +230,7 @@ export default function RuleTable(props: Readonly<RuleTableProps>) {
           })
         : null,
     ].filter(Boolean) as Array<TableColumnDefinition<RuleDetailItem>>;
-  }, [handleDelete, handleEdit, id, inlineStyles.danger]);
+  }, [handleDelete, handleEdit, handleToggleRule, id, inlineStyles.danger]);
 
   const [tableHeight, setTableHeight] = useState(calcTableHeight());
 

@@ -46,3 +46,8 @@ export const reorderCustomizedRules = async (rules: string[]): Promise<void> => 
   const url = `${urtConfig.rule}/customized/reorder`;
   await axios.post(url, { rules });
 };
+
+export const toggleCustomizedRule = async (rule: string): Promise<void> => {
+  const url = `${urtConfig.rule}/customized/toggle`;
+  await axios.post(url, { rule });
+};
