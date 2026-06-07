@@ -1,4 +1,19 @@
 import { Table } from "@/components/Core";
+import { DraggableRow } from "./DraggableRow";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { AddRuleModal } from "@/components/Modal/AddRuleModal";
 import RuleCell from "@/components/pages/Data/Connections/RuleTag";
 import { useDangerStyles } from "@/hooks";
@@ -94,6 +109,27 @@ export default function RuleTable(props: Readonly<RuleTableProps>) {
       await refresh();
     },
     [editingRule, refresh],
+  );
+
+  const handleDragEnd = useCallback(
+    async (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+      const oldIdx = data.findIndex(r => formatRule(r) === active.id);
+      const newIdx = data.findIndex(r => formatRule(r) === over.id);
+      if (oldIdx === -1 || newIdx === -1) return;
+      const newData = [...data];
+      const [moved] = newData.splice(oldIdx, 1);
+      newData.splice(newIdx, 0, moved);
+      await reorderCustomizedRules(newData.map(r => (data.find(d => formatRule(d) === formatRule(r)) as any)?.raw || formatRule(r)));
+      await refresh();
+    },
+    [data, refresh],
+  );
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
   const data = useMemo(() => {
@@ -290,7 +326,38 @@ export default function RuleTable(props: Readonly<RuleTableProps>) {
           )}
         </div>
       </div>
-      <Table columns={columns} data={data} sortable height={tableHeight} />
+      {id === CUSTOMIZED_RULE_ID ? (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={data.map(r => formatRule(r))} strategy={verticalListSortingStrategy}>
+            <div style={{ overflowY: "auto", height: tableHeight }}>
+              {/* Header */}
+              <div style={{ display: "flex", alignItems: "center", padding: "4px 0", borderBottom: "2px solid var(--colorNeutralStroke1)", fontWeight: 600, fontSize: 12, color: "var(--colorNeutralForeground2)" }}>
+                <div style={{ width: 36, flexShrink: 0 }} />
+                <div style={{ width: 110, flexShrink: 0 }}>Type</div>
+                <div style={{ flex: 1 }}>Payload</div>
+                <div style={{ width: 100, flexShrink: 0 }}>Policy</div>
+                <div style={{ width: 120, flexShrink: 0 }}>Actions</div>
+              </div>
+              {data.map((item) => {
+                const fullItem = data.find(r => formatRule(r) === formatRule(item));
+                const isDisabled = (fullItem as any)?.disabled === true;
+                return (
+                  <DraggableRow
+                    key={formatRule(item)}
+                    item={item}
+                    isDisabled={isDisabled}
+                    onToggle={() => handleToggleRule(item)}
+                    onEdit={() => handleEdit(item)}
+                    onDelete={() => handleDelete(item)}
+                  />
+                );
+              })}
+            </div>
+          </SortableContext>
+        </DndContext>
+      ) : (
+        <Table columns={columns} data={data} sortable height={tableHeight} />
+      )}
     </div>
   );
 }
