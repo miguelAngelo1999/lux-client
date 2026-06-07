@@ -138,12 +138,14 @@ export default function RuleTable(props: Readonly<RuleTableProps>) {
 
   const handleToggleRule = useCallback(
     async (item: RuleDetailItem) => {
-      // Send the raw rule string (with or without # prefix)
-      const rawRule = (item as any).raw || `${item.ruleType},${item.payload},${item.policy}`;
+      // Look up the full item from data (DataGrid may strip extra props like raw/disabled)
+      const key = formatRule(item);
+      const fullItem = data.find(r => formatRule(r) === key);
+      const rawRule = (fullItem as any)?.raw || key;
       await toggleCustomizedRule(rawRule);
       await refresh();
     },
-    [refresh],
+    [data, refresh],
   );
 
   const handleDelete = useCallback(
@@ -213,10 +215,10 @@ export default function RuleTable(props: Readonly<RuleTableProps>) {
                       title="Move down"
                     />
                     <Button
-                      icon={(item as any).disabled ? <EyeRegular /> : <EyeOffRegular />}
+                      icon={(data.find(r => formatRule(r) === formatRule(item)) as any)?.disabled ? <EyeRegular /> : <EyeOffRegular />}
                       onClick={() => handleToggleRule(item)}
                       size="small"
-                      title={(item as any).disabled ? "Enable rule" : "Disable rule"}
+                      title={(data.find(r => formatRule(r) === formatRule(item)) as any)?.disabled ? "Enable rule" : "Disable rule"}
                       style={{ opacity: 0.7 }}
                     />
                     <Button
