@@ -329,7 +329,7 @@ export default function RuleTable(props: Readonly<RuleTableProps>) {
       {id === CUSTOMIZED_RULE_ID ? (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={data.map(r => formatRule(r))} strategy={verticalListSortingStrategy}>
-            <div style={{ overflowY: "auto", height: tableHeight }}>
+            <div style={{ overflowY: "auto", height: tableHeight, width: "100%" }}>
               {/* Header */}
               <div style={{ display: "flex", alignItems: "center", padding: "4px 0", borderBottom: "2px solid var(--colorNeutralStroke1)", fontWeight: 600, fontSize: 12, color: "var(--colorNeutralForeground2)" }}>
                 <div style={{ width: 36, flexShrink: 0 }} />

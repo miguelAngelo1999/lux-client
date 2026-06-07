@@ -34,7 +34,7 @@ export function DraggableRow({ item, isDisabled, onToggle, onEdit, onDelete }: D
     transition,
     opacity: isDragging ? 0.5 : 1,
     backgroundColor: isDragging ? 'var(--colorNeutralBackground3)' : undefined,
-    display: 'flex',
+    display: "flex", width: "100%",
     alignItems: 'center',
     borderBottom: '1px solid var(--colorNeutralStroke2)',
     padding: '4px 0',
