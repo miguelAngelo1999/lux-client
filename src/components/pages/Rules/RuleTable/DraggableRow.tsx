@@ -1,11 +1,9 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Button, TableCellLayout } from '@fluentui/react-components';
+import { Button, Switch } from '@fluentui/react-components';
 import {
   DeleteRegular,
   EditRegular,
-  EyeOffRegular,
-  EyeRegular,
   ReOrderDotsVerticalRegular,
 } from '@fluentui/react-icons';
 import { type RuleDetailItem } from 'lux-js-sdk';
@@ -71,12 +69,11 @@ export function DraggableRow({ item, isDisabled, onToggle, onEdit, onDelete }: D
 
       {/* Actions */}
       <div className={styles.actionBtns} style={{ flexShrink: 0 }}>
-        <Button
-          icon={isDisabled ? <EyeRegular /> : <EyeOffRegular />}
-          onClick={onToggle}
-          size="small"
+        <Switch
+          checked={!isDisabled}
+          onChange={onToggle}
           title={isDisabled ? 'Enable rule' : 'Disable rule'}
-          appearance="transparent"
+          style={{ minWidth: 0 }}
         />
         <Button
           icon={<EditRegular />}

@@ -82,8 +82,11 @@ export default function RuleTable(props: Readonly<RuleTableProps>) {
 
   const handleDeleteCustomizedRule = useCallback(
     async (rule: RuleDetailItem) => {
-      await deleteCustomizedRules([formatRule(rule)]);
-      await refresh();
+      const key = formatRule(rule);
+      // Optimistic: remove immediately
+      setRules(prev => prev.filter(r => formatRule(r) !== key));
+      // Sync with server in background
+      deleteCustomizedRules([key]).catch(() => refresh());
     },
     [refresh],
   );
@@ -102,11 +105,14 @@ export default function RuleTable(props: Readonly<RuleTableProps>) {
       const newRule = formatRule(value);
       if (editingRule) {
         const oldRule = formatRule(editingRule);
-        await editCustomizedRule(oldRule, newRule);
+        // Optimistic: replace in local state
+        setRules(prev => prev.map(r => formatRule(r) === oldRule ? value : r));
+        editCustomizedRule(oldRule, newRule).catch(() => refresh());
       } else {
-        await addCustomizedRules([newRule]);
+        // Optimistic: append
+        setRules(prev => [...prev, value]);
+        addCustomizedRules([newRule]).catch(() => refresh());
       }
-      await refresh();
     },
     [editingRule, refresh],
   );
@@ -125,19 +131,21 @@ export default function RuleTable(props: Readonly<RuleTableProps>) {
   }, [rules, searchedValue]);
 
   const handleDragEnd = useCallback(
-    async (event: DragEndEvent) => {
+    (event: DragEndEvent) => {
       const { active, over } = event;
       if (!over || active.id === over.id) return;
-      const oldIdx = data.findIndex(r => formatRule(r) === active.id);
-      const newIdx = data.findIndex(r => formatRule(r) === over.id);
+      const oldIdx = rules.findIndex(r => formatRule(r) === active.id);
+      const newIdx = rules.findIndex(r => formatRule(r) === over.id);
       if (oldIdx === -1 || newIdx === -1) return;
-      const newData = [...data];
-      const [moved] = newData.splice(oldIdx, 1);
-      newData.splice(newIdx, 0, moved);
-      await reorderCustomizedRules(newData.map(r => (data.find(d => formatRule(d) === formatRule(r)) as any)?.raw || formatRule(r)));
-      await refresh();
+      const newRules = [...rules];
+      const [moved] = newRules.splice(oldIdx, 1);
+      newRules.splice(newIdx, 0, moved);
+      // Optimistic: update state immediately
+      setRules(newRules);
+      // Sync with server in background
+      reorderCustomizedRules(newRules.map(r => (r as any).raw || formatRule(r))).catch(() => refresh());
     },
-    [data, refresh],
+    [rules, refresh],
   );
 
   const sensors = useSensors(
@@ -155,33 +163,42 @@ export default function RuleTable(props: Readonly<RuleTableProps>) {
   );
 
   const handleMoveRule = useCallback(
-    async (rule: RuleDetailItem, direction: "up" | "down") => {
-      // Use raw or formatted string to find index (indexOf fails with object refs)
-      const ruleStr = formatRule(rule); // use typed fields for reliable matching
-      const idx = data.findIndex(r => formatRule(r) === ruleStr);
+    (rule: RuleDetailItem, direction: "up" | "down") => {
+      const ruleStr = formatRule(rule);
+      const idx = rules.findIndex(r => formatRule(r) === ruleStr);
       if (idx === -1) return;
       if (direction === "up" && idx === 0) return;
-      if (direction === "down" && idx === data.length - 1) return;
-      const newRules = [...data];
+      if (direction === "down" && idx === rules.length - 1) return;
+      const snapshot = rules;
+      const newRules = [...rules];
       const swapIdx = direction === "up" ? idx - 1 : idx + 1;
       [newRules[idx], newRules[swapIdx]] = [newRules[swapIdx], newRules[idx]];
-      // Preserve disabled state by using raw field
-      await reorderCustomizedRules(newRules.map(r => (r as any).raw || formatRule(r)));
-      await refresh();
+      setRules(newRules); // instant UI update
+      reorderCustomizedRules(newRules.map(r => (r as any).raw || formatRule(r))).catch(() => {
+        setRules(snapshot);
+        notifier.error("Failed to reorder rules");
+      });
     },
-    [data, refresh],
+    [rules],
   );
 
   const handleToggleRule = useCallback(
-    async (item: RuleDetailItem) => {
-      // Look up the full item from data (DataGrid may strip extra props like raw/disabled)
+    (item: RuleDetailItem) => {
       const key = formatRule(item);
-      const fullItem = data.find(r => formatRule(r) === key);
+      const fullItem = rules.find(r => formatRule(r) === key);
+      const isDisabled = (fullItem as any)?.disabled === true;
       const rawRule = (fullItem as any)?.raw || key;
-      await toggleCustomizedRule(rawRule);
-      await refresh();
+      // Optimistic: flip disabled flag immediately
+      setRules(prev => prev.map(r => {
+        if (formatRule(r) === key) {
+          return { ...r, disabled: !isDisabled, raw: isDisabled ? key : "#" + key } as any;
+        }
+        return r;
+      }));
+      // Sync in background
+      toggleCustomizedRule(rawRule).catch(() => refresh());
     },
-    [data, refresh],
+    [rules, refresh],
   );
 
   const handleDelete = useCallback(
