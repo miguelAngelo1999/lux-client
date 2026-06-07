@@ -27,9 +27,11 @@ interface GetRulesRes {
 export type GetRules = () => Promise<GetRulesRes>;
 
 export interface RuleDetailItem {
-  policy: RULE_POLICY;
+  policy: RULE_POLICY | string;  // string allows named proxy policies
   payload: string;
-  ruleType: RULE_TYPE;
+  ruleType: RULE_TYPE | string;
+  raw?: string;       // raw rule string including # prefix for disabled rules
+  disabled?: boolean; // true if rule is disabled (# prefixed)
 }
 
 interface GetRuleDetailRes {
