@@ -111,6 +111,19 @@ export default function RuleTable(props: Readonly<RuleTableProps>) {
     [editingRule, refresh],
   );
 
+  const data = useMemo(() => {
+    return rules.filter((conn) => {
+      if (searchedValue) {
+        return [conn.payload, conn.policy, conn.ruleType].some((value) => {
+          return value
+            .toLocaleLowerCase()
+            .includes(searchedValue.toLocaleLowerCase());
+        });
+      }
+      return true;
+    });
+  }, [rules, searchedValue]);
+
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
       const { active, over } = event;
@@ -131,19 +144,6 @@ export default function RuleTable(props: Readonly<RuleTableProps>) {
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
-
-  const data = useMemo(() => {
-    return rules.filter((conn) => {
-      if (searchedValue) {
-        return [conn.payload, conn.policy, conn.ruleType].some((value) => {
-          return value
-            .toLocaleLowerCase()
-            .includes(searchedValue.toLocaleLowerCase());
-        });
-      }
-      return true;
-    });
-  }, [rules, searchedValue]);
 
   const handleEdit = useCallback(
     (item: RuleDetailItem) => {
