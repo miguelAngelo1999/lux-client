@@ -121,8 +121,8 @@ export default function RuleTable(props: Readonly<RuleTableProps>) {
   const handleMoveRule = useCallback(
     async (rule: RuleDetailItem, direction: "up" | "down") => {
       // Use raw or formatted string to find index (indexOf fails with object refs)
-      const ruleStr = (rule as any).raw || formatRule(rule);
-      const idx = data.findIndex(r => ((r as any).raw || formatRule(r)) === ruleStr);
+      const ruleStr = formatRule(rule); // use typed fields for reliable matching
+      const idx = data.findIndex(r => formatRule(r) === ruleStr);
       if (idx === -1) return;
       if (direction === "up" && idx === 0) return;
       if (direction === "down" && idx === data.length - 1) return;
