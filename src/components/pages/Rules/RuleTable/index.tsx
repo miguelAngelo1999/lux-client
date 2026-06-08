@@ -105,9 +105,9 @@ export default function RuleTable(props: Readonly<RuleTableProps>) {
       const newRule = formatRule(value);
       if (editingRule) {
         const oldRule = formatRule(editingRule);
-        // Optimistic: replace in local state
+        // Optimistic: replace in local state, then refresh to get correct raw field
         setRules(prev => prev.map(r => formatRule(r) === oldRule ? value : r));
-        editCustomizedRule(oldRule, newRule).catch(() => refresh());
+        editCustomizedRule(oldRule, newRule).then(() => refresh()).catch(() => refresh());
       } else {
         // Optimistic: append
         setRules(prev => [...prev, value]);
