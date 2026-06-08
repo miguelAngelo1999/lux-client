@@ -73,7 +73,7 @@ export function SettingForm(props: SettingsFormProps): JSX.Element {
           {isDarwin && isTun && <HijackDns />}
           <LocalHttpServer directedInterfaceV4Addr={directedInterfaceV4Addr} />
           <AutoMode />
-          {isTun && <DefaultInterface />}
+          <DefaultInterface />
           {isTun && <BlockQuic />}
         </div>
 

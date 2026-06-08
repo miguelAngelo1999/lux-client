@@ -66,7 +66,6 @@ export default function DefaultInterface() {
         <div className={styles.desc}>
           <Subtitle2>
             {t(TRANSLATION_KEY.DEFAULT_INTERFACE)}
-            <TunTag />
           </Subtitle2>
           <Caption1>{t(TRANSLATION_KEY.DEFAULT_INTERFACE_TOOLTIP)}</Caption1>
         </div>
