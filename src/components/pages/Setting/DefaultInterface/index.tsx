@@ -48,7 +48,9 @@ export default function DefaultInterface() {
       });
       const newInterfaces = [...filteredItems].map((item) => ({
         id: item.Name,
-        content: item.Name,
+        content: (item as any).FriendlyName
+          ? `${(item as any).FriendlyName} (${item.Name})`
+          : item.Name,
       }));
       setNetworkInterfaces(newInterfaces);
     });
