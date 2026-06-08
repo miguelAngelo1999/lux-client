@@ -97,7 +97,7 @@ export default function EditItemWithDialog(
                     className={styles.select}
                   >
                     {selectorItems.map((option) => (
-                      <Option key={option.content as string}>
+                      <Option key={option.id as string} value={option.id as string}>
                         {option.content as string}
                       </Option>
                     ))}

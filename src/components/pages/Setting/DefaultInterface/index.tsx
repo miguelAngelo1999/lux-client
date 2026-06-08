@@ -47,7 +47,7 @@ export default function DefaultInterface() {
         return true;
       });
       const newInterfaces = [...filteredItems].map((item) => ({
-        id: item.Name,
+        id: item.Name,  // always store raw device name (en0, en7, etc.)
         content: (item as any).FriendlyName
           ? `${(item as any).FriendlyName} (${item.Name})`
           : item.Name,
