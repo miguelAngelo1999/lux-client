@@ -24,6 +24,7 @@ const INITIAL_VALUES: RuleDetailItem = {
   policy: RULE_POLICY.Proxy,
   payload: "",
   ruleType: RULE_TYPE.Domain,
+  network: "",
 };
 
 const RULE_TYPE_OPTIONS = [
@@ -33,12 +34,19 @@ const RULE_TYPE_OPTIONS = [
   { id: RULE_TYPE.DomainRegex, content: RULE_TYPE.DomainRegex },
   { id: RULE_TYPE.DomainSuffix, content: RULE_TYPE.DomainSuffix },
   { id: RULE_TYPE.DnsMap, content: RULE_TYPE.DnsMap },
+  { id: RULE_TYPE.DstPort, content: RULE_TYPE.DstPort },
 ];
 
 const BASE_POLICY_OPTIONS = [
   { id: RULE_POLICY.Proxy, content: `${RULE_POLICY.Proxy} (default selected)` },
   { id: RULE_POLICY.Direct, content: RULE_POLICY.Direct },
   { id: RULE_POLICY.Reject, content: RULE_POLICY.Reject },
+];
+
+const NETWORK_OPTIONS = [
+  { id: "", content: "Any (TCP + UDP)" },
+  { id: "tcp", content: "TCP only" },
+  { id: "udp", content: "UDP only" },
 ];
 
 export function AddRuleModal(props: Readonly<AddRuleModalProps>) {
@@ -104,6 +112,12 @@ export function AddRuleModal(props: Readonly<AddRuleModalProps>) {
                 className={styles.item}
               />
               <Field name="payload" label={t(TRANSLATION_KEY.PAYLOAD)} />
+              <FiledSelector
+                name="network"
+                label={t(TRANSLATION_KEY.NETWORK)}
+                items={NETWORK_OPTIONS}
+                className={styles.item}
+              />
             </div>
           </Modal>
         );
