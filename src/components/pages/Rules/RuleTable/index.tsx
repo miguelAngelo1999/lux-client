@@ -50,7 +50,8 @@ function calcTableHeight() {
 }
 
 function formatRule(rule: RuleDetailItem) {
-  return `${rule.ruleType.trim()},${rule.payload.trim()},${rule.policy.trim()}`;
+  const base = `${rule.ruleType.trim()},${rule.payload.trim()},${rule.policy.trim()}`;
+  return rule.network ? `${base},${rule.network.trim()}` : base;
 }
 
 export default function RuleTable(props: Readonly<RuleTableProps>) {

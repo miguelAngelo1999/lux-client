@@ -11,6 +11,7 @@ export enum RULE_TYPE {
   DomainSuffix = "DOMAIN-SUFFIX",
   Process = "PROCESS",
   DnsMap = "DNS-MAP",
+  DstPort = "DST-PORT",
   BuiltIn = "BUILD-IN",
 }
 
@@ -32,6 +33,7 @@ export interface RuleDetailItem {
   ruleType: RULE_TYPE | string;
   raw?: string;       // raw rule string including # prefix for disabled rules
   disabled?: boolean; // true if rule is disabled (# prefixed)
+  network?: string;   // optional protocol filter: "tcp" or "udp" (absent = both)
 }
 
 interface GetRuleDetailRes {
